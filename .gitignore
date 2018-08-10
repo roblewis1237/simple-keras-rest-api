@@ -1,6 +1,9 @@
 
 # Created by https://www.gitignore.io/api/python,pycharm,macos
 
+# data folder
+.dog_images/
+
 .idea
 
 ### macOS ###
