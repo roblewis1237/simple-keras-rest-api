@@ -10,6 +10,8 @@
 from keras.applications import ResNet50
 from keras.preprocessing.image import img_to_array
 from keras.applications import imagenet_utils
+from keras.backend import clear_session
+
 from PIL import Image
 import numpy as np
 import flask
@@ -45,6 +47,10 @@ def prepare_image(image, target):
 
 @app.route("/predict", methods=["POST"])
 def predict():
+
+    # Clear session to avoid thread issue in keras
+    clear_session()
+
     # initialize the data dictionary that will be returned from the
     # view
     data = {"success": False}
@@ -84,4 +90,4 @@ if __name__ == "__main__":
     print(("* Loading Keras model and Flask starting server..."
            "please wait until server has fully started"))
     load_model()
-    app.run(host='0.0.0.0') # add host arg so it's available on external addresses
+    app.run() # add host arg so it's available on external addresses
