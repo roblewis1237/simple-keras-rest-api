@@ -11,6 +11,7 @@ from keras.applications import ResNet50
 from keras.preprocessing.image import img_to_array
 from keras.applications import imagenet_utils
 from keras.backend import clear_session
+import tensorflow as tf
 
 from PIL import Image
 import numpy as np
@@ -28,6 +29,9 @@ def load_model():
     # substitute in your own networks just as easily)
     global model
     model = ResNet50(weights="imagenet")
+
+    global graph  # Attempt to make keras run on threads
+    graph = tf.get_default_graph()
 
 
 def prepare_image(image, target):
@@ -48,9 +52,6 @@ def prepare_image(image, target):
 @app.route("/predict", methods=["POST"])
 def predict():
 
-    # Clear session to avoid thread issue in keras
-    clear_session()
-
     # initialize the data dictionary that will be returned from the
     # view
     data = {"success": False}
@@ -67,7 +68,12 @@ def predict():
 
             # classify the input image and then initialize the list
             # of predictions to return to the client
-            preds = model.predict(image)
+
+            # Code for threadsafing
+            global graph
+            with graph.as_default():
+                preds = model.predict(image)
+
             results = imagenet_utils.decode_predictions(preds)
             data["predictions"] = []
 
@@ -90,4 +96,4 @@ if __name__ == "__main__":
     print(("* Loading Keras model and Flask starting server..."
            "please wait until server has fully started"))
     load_model()
-    app.run() # add host arg so it's available on external addresses
+    app.run()  # add host arg so it's available on external addresses
